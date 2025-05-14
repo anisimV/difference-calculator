@@ -1,9 +1,20 @@
 package practice.code;
 
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.w3c.dom.ls.LSOutput;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Objects;
 
 @Command(
         name = "gendiff",
@@ -30,11 +41,30 @@ public class App implements Runnable {
     // Здесь будет основная логика программы.
     @Override
     public void run() {
-        System.out.println("File 1: " + filepath1);
-        System.out.println("File 2: " + filepath2);
-        System.out.println("Format: " + format);
+        try {
+            Map<String, Object> data1 = parseJson(filepath1);
+            Map<String, Object> data2 = parseJson(filepath2);
+
+            System.out.println("Parsed data from file 1:");
+            System.out.println(data1);
+            System.out.println("Parsed data from file 2:");
+            System.out.println(data2);
+        } catch (Exception e) {
+            System.err.println("Ошибка при чтении или паринге файлов: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
+    private Map<String, Object> parseJson(String resorceName) throws Exception {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(resorceName);
+        if (is == null) {
+            throw new FileNotFoundException("Файл " + resorceName + " не найден в resources");
+        }
+        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(content, Map.class);
+
+    }
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new App()).execute(args);
