@@ -1,8 +1,6 @@
 package practice.code;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.w3c.dom.ls.LSOutput;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -11,10 +9,8 @@ import picocli.CommandLine.Parameters;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.Callable;
 
 @Command(
         name = "gendiff",
@@ -23,7 +19,7 @@ import java.util.Objects;
         description = "Compares two configuration files and shows a difference."
 )
 
-public class App implements Runnable {
+public class App implements Callable<Integer> {
 
     @Parameters(index = "0", paramLabel = "filepath1", description = "path to first file")
     private String filepath1; // переменная для хранения пути к первому файлу
@@ -37,21 +33,23 @@ public class App implements Runnable {
     @Option(names = {"-f", "--format"}, description = "output format [default: stylish]")
     private String format = "stylish";
 
-    // Метод run() вызывается, когда пользователь запускает команду без -h или -V.
-    // Здесь будет основная логика программы.
+    // Метод, который вызывается при запуске программы
     @Override
-    public void run() {
+    public Integer call() {
         try {
+            // Парсим JSON-файлы в Map
             Map<String, Object> data1 = parseJson(filepath1);
             Map<String, Object> data2 = parseJson(filepath2);
 
-            System.out.println("Parsed data from file 1:");
-            System.out.println(data1);
-            System.out.println("Parsed data from file 2:");
-            System.out.println(data2);
+            // Генерируем дифф
+            String diff = Differ.generate(data1, data2);
+
+            // Выводим результат
+            System.out.println(diff);
+            return 0;
         } catch (Exception e) {
-            System.err.println("Ошибка при чтении или паринге файлов: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Ошибка при чтении или парсинге файлов: " + e.getMessage());
+            return 1;
         }
     }
 
