@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("application")
+    id("checkstyle")
 }
 
 group = "practice.code"
@@ -26,4 +27,9 @@ tasks.test {
 
 application {
     mainClass.set("practice.code.App")
+}
+
+checkstyle {
+    toolVersion = "10.12.3" // Последняя версия на момент 2024 года
+    configFile = file("config/checkstyle/checkstyle.xml")
 }
